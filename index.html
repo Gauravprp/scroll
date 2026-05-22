@@ -36,8 +36,6 @@
       opacity:0;
     }
 
-    /* UI */
-
     .hud{
 
       position:fixed;
@@ -49,7 +47,7 @@
 
       z-index:999;
 
-      width:340px;
+      width:380px;
 
       padding:18px 24px;
 
@@ -80,13 +78,28 @@
       top:20px;
       right:20px;
 
-      z-index:999;
-
       color:#fff;
 
-      font-size:28px;
+      z-index:999;
 
+      text-align:right;
+
+    }
+
+    .score div:first-child{
+
+      font-size:30px;
       font-weight:bold;
+
+    }
+
+    .high-score{
+
+      margin-top:10px;
+
+      font-size:20px;
+
+      color:#00bfff;
 
     }
 
@@ -99,11 +112,96 @@
 
       transform:translateX(-50%);
 
-      color:#999;
+      color:#aaa;
 
       font-size:14px;
 
       z-index:999;
+    }
+
+    /* GAME OVER */
+
+    .game-over{
+
+      position:fixed;
+
+      inset:0;
+
+      background:
+      rgba(0,0,0,0.82);
+
+      backdrop-filter:blur(10px);
+
+      display:none;
+
+      align-items:center;
+      justify-content:center;
+
+      flex-direction:column;
+
+      z-index:99999;
+
+      color:#fff;
+
+    }
+
+    .game-over h1{
+
+      font-size:90px;
+
+      margin-bottom:20px;
+    }
+
+    .final-score{
+
+      font-size:32px;
+
+      color:#aaa;
+
+      margin-bottom:15px;
+    }
+
+    .final-high{
+
+      font-size:24px;
+
+      color:#00bfff;
+
+      margin-bottom:40px;
+    }
+
+    .retry-btn{
+
+      padding:18px 50px;
+
+      border:none;
+
+      border-radius:999px;
+
+      font-size:20px;
+
+      cursor:pointer;
+
+      background:
+      linear-gradient(
+        90deg,
+        #0066ff,
+        #00bfff
+      );
+
+      color:#fff;
+
+      transition:0.2s ease;
+
+      box-shadow:
+      0 0 30px rgba(0,102,255,0.4);
+
+    }
+
+    .retry-btn:hover{
+
+      transform:scale(1.06);
+
     }
 
   </style>
@@ -111,26 +209,71 @@
 
 <body>
 
-  <div class="hud" id="hud">
-    Show your hand ✋
+<div class="hud" id="hud">
+  ✊ Close hand to drive
+</div>
+
+<div class="score">
+
+  <div id="score">
+    Score: 0
   </div>
 
-  <div class="score" id="score">
-    0
+  <div
+    class="high-score"
+    id="highScore"
+  >
+    High: 0
   </div>
 
-  <div class="controls">
-    Move hand LEFT / RIGHT to steer
+</div>
+
+<div class="controls">
+  ✋ Open Palm = Pause | ✊ Closed Hand = Drive
+</div>
+
+<!-- GAME OVER -->
+
+<div
+  class="game-over"
+  id="gameOverScreen"
+>
+
+  <h1>
+    GAME OVER
+  </h1>
+
+  <div
+    class="final-score"
+    id="finalScore"
+  >
+    Score: 0
   </div>
 
-  <video
-    id="video"
-    autoplay
-    playsinline
-    muted
-  ></video>
+  <div
+    class="final-high"
+    id="finalHigh"
+  >
+    High Score: 0
+  </div>
 
-  <canvas id="game"></canvas>
+  <button
+    class="retry-btn"
+    onclick="restartGame()"
+  >
+    Retry
+  </button>
+
+</div>
+
+<video
+  id="video"
+  autoplay
+  playsinline
+  muted
+></video>
+
+<canvas id="game"></canvas>
 
 <script>
 
@@ -146,24 +289,55 @@ document.getElementById("hud");
 const scoreText =
 document.getElementById("score");
 
+const highScoreText =
+document.getElementById("highScore");
+
+const gameOverScreen =
+document.getElementById("gameOverScreen");
+
+const finalScore =
+document.getElementById("finalScore");
+
+const finalHigh =
+document.getElementById("finalHigh");
+
 canvas.width =
 window.innerWidth;
 
 canvas.height =
 window.innerHeight;
 
-// ------------------------------------
+// --------------------------------------
+// HIGH SCORE
+// --------------------------------------
+
+let highScore =
+localStorage.getItem(
+  "gestureCarHighScore"
+) || 0;
+
+highScoreText.innerText =
+"High: " + highScore;
+
+// --------------------------------------
 // GAME STATE
-// ------------------------------------
+// --------------------------------------
 
 let score = 0;
+
 let gameOver = false;
+
+let gamePaused = true;
 
 let handX = 0.5;
 
-// ------------------------------------
+let gameSpeed = 3;
+
+let speedIncrease = 0.002;
+
+// --------------------------------------
 // PLAYER
-// ------------------------------------
+// --------------------------------------
 
 const player = {
 
@@ -174,20 +348,19 @@ const player = {
   canvas.height - 180,
 
   width:70,
-  height:120,
-
-  speed:0
+  height:120
 
 };
 
-// ------------------------------------
+// --------------------------------------
 // OBSTACLES
-// ------------------------------------
+// --------------------------------------
 
 const obstacles = [];
 
-// create traffic
 function createObstacle(){
+
+  if(gameOver) return;
 
   const width = 70;
   const height = 120;
@@ -211,24 +384,78 @@ function createObstacle(){
     height,
 
     speed:
-    8 + Math.random() * 5
+    gameSpeed + Math.random() * 2
 
   });
 
 }
 
-// spawn loop
 setInterval(()=>{
 
-  if(!gameOver){
+  if(!gamePaused && !gameOver){
+
     createObstacle();
   }
 
 },1000);
 
-// ------------------------------------
-// MEDIAPIPE
-// ------------------------------------
+// --------------------------------------
+// GAME OVER
+// --------------------------------------
+
+function triggerGameOver(){
+
+  gameOver = true;
+
+  gamePaused = true;
+
+  hud.innerText =
+  "💀 Game Over";
+
+  finalScore.innerText =
+  "Score: " + score;
+
+  finalHigh.innerText =
+  "High Score: " + highScore;
+
+  gameOverScreen.style.display =
+  "flex";
+
+}
+
+// --------------------------------------
+// RESTART
+// --------------------------------------
+
+function restartGame(){
+
+  score = 0;
+
+  scoreText.innerText =
+  "Score: 0";
+
+  gameOver = false;
+
+  gamePaused = true;
+
+  gameSpeed = 3;
+
+  player.x =
+  canvas.width / 2 - 35;
+
+  obstacles.length = 0;
+
+  gameOverScreen.style.display =
+  "none";
+
+  hud.innerText =
+  "✊ Close hand to drive";
+
+}
+
+// --------------------------------------
+// HANDS
+// --------------------------------------
 
 const videoElement =
 document.getElementById("video");
@@ -250,11 +477,13 @@ hands.setOptions({
 
 });
 
-// ------------------------------------
+// --------------------------------------
 // HAND TRACKING
-// ------------------------------------
+// --------------------------------------
 
 hands.onResults((results)=>{
+
+  if(gameOver) return;
 
   if(
     !results.multiHandLandmarks ||
@@ -264,44 +493,101 @@ hands.onResults((results)=>{
     hud.innerText =
     "No hand detected";
 
+    gamePaused = true;
+
     return;
   }
 
   const landmarks =
   results.multiHandLandmarks[0];
 
-  // index finger
-  const finger =
+  // fingertips
+  const indexTip =
   landmarks[8];
 
-  handX = finger.x;
+  const middleTip =
+  landmarks[12];
 
-  // LEFT
-  if(handX < 0.4){
+  const ringTip =
+  landmarks[16];
+
+  const pinkyTip =
+  landmarks[20];
+
+  // bases
+  const indexBase =
+  landmarks[5];
+
+  const middleBase =
+  landmarks[9];
+
+  const ringBase =
+  landmarks[13];
+
+  const pinkyBase =
+  landmarks[17];
+
+  // OPEN PALM
+  const openPalm =
+
+    indexTip.y < indexBase.y &&
+    middleTip.y < middleBase.y &&
+    ringTip.y < ringBase.y &&
+    pinkyTip.y < pinkyBase.y;
+
+  // CLOSED HAND
+  const closedHand =
+
+    indexTip.y > indexBase.y &&
+    middleTip.y > middleBase.y &&
+    ringTip.y > ringBase.y &&
+    pinkyTip.y > pinkyBase.y;
+
+  // PAUSE
+  if(openPalm){
+
+    gamePaused = true;
 
     hud.innerText =
-    "Turning Left ←";
+    "✋ Game Paused";
+
+    return;
   }
 
-  // RIGHT
-  else if(handX > 0.6){
+  // PLAY
+  if(closedHand){
 
-    hud.innerText =
-    "Turning Right →";
-  }
+    gamePaused = false;
 
-  // CENTER
-  else{
+    handX = indexTip.x;
 
-    hud.innerText =
-    "Straight ↑";
+    if(handX < 0.4){
+
+      hud.innerText =
+      "✊ Turning Left ←";
+
+    }
+
+    else if(handX > 0.6){
+
+      hud.innerText =
+      "✊ Turning Right →";
+
+    }
+
+    else{
+
+      hud.innerText =
+      "✊ Driving Straight ↑";
+    }
+
   }
 
 });
 
-// ------------------------------------
+// --------------------------------------
 // CAMERA
-// ------------------------------------
+// --------------------------------------
 
 const camera = new Camera(videoElement,{
 
@@ -320,15 +606,14 @@ const camera = new Camera(videoElement,{
 
 camera.start();
 
-// ------------------------------------
-// DRAW ROAD
-// ------------------------------------
+// --------------------------------------
+// ROAD
+// --------------------------------------
 
 let roadOffset = 0;
 
 function drawRoad(){
 
-  // road
   ctx.fillStyle = "#222";
 
   ctx.fillRect(
@@ -338,11 +623,15 @@ function drawRoad(){
     canvas.height
   );
 
-  // lane lines
   ctx.strokeStyle = "#fff";
+
   ctx.lineWidth = 6;
 
-  roadOffset += 20;
+  if(!gamePaused && !gameOver){
+
+    roadOffset += gameSpeed * 2;
+
+  }
 
   if(roadOffset > 80){
     roadOffset = 0;
@@ -376,20 +665,18 @@ function drawRoad(){
 
 }
 
-// ------------------------------------
-// DRAW PLAYER
-// ------------------------------------
+// --------------------------------------
+// PLAYER
+// --------------------------------------
 
 function drawPlayer(){
 
-  // smooth steering
   const targetX =
   handX * canvas.width;
 
   player.x +=
   (targetX - player.x - player.width/2) * 0.08;
 
-  // car body
   ctx.fillStyle = "#00bfff";
 
   ctx.fillRect(
@@ -399,7 +686,6 @@ function drawPlayer(){
     player.height
   );
 
-  // windshield
   ctx.fillStyle = "#bdefff";
 
   ctx.fillRect(
@@ -411,9 +697,9 @@ function drawPlayer(){
 
 }
 
-// ------------------------------------
-// DRAW OBSTACLES
-// ------------------------------------
+// --------------------------------------
+// OBSTACLES
+// --------------------------------------
 
 function drawObstacles(){
 
@@ -422,9 +708,12 @@ function drawObstacles(){
     const obs =
     obstacles[i];
 
-    obs.y += obs.speed;
+    if(!gamePaused && !gameOver){
 
-    // obstacle car
+      obs.y += obs.speed;
+
+    }
+
     ctx.fillStyle = "#ff3333";
 
     ctx.fillRect(
@@ -451,10 +740,7 @@ function drawObstacles(){
 
     ){
 
-      gameOver = true;
-
-      hud.innerText =
-      "Game Over 💀";
+      triggerGameOver();
 
     }
 
@@ -466,7 +752,21 @@ function drawObstacles(){
       score++;
 
       scoreText.innerText =
-      score;
+      "Score: " + score;
+
+      // HIGH SCORE UPDATE
+      if(score > highScore){
+
+        highScore = score;
+
+        localStorage.setItem(
+          "gestureCarHighScore",
+          highScore
+        );
+
+        highScoreText.innerText =
+        "High: " + highScore;
+      }
 
       i--;
     }
@@ -475,9 +775,9 @@ function drawObstacles(){
 
 }
 
-// ------------------------------------
-// GAME LOOP
-// ------------------------------------
+// --------------------------------------
+// LOOP
+// --------------------------------------
 
 function animate(){
 
@@ -490,29 +790,14 @@ function animate(){
 
   drawRoad();
 
-  if(!gameOver){
+  drawPlayer();
 
-    drawPlayer();
+  drawObstacles();
 
-    drawObstacles();
+  // speed increase
+  if(!gamePaused && !gameOver){
 
-  }else{
-
-    ctx.fillStyle = "#fff";
-
-    ctx.font = "70px Arial";
-
-    ctx.textAlign = "center";
-
-    ctx.fillText(
-
-      "GAME OVER",
-
-      canvas.width / 2,
-
-      canvas.height / 2
-
-    );
+    gameSpeed += speedIncrease;
 
   }
 
@@ -521,9 +806,9 @@ function animate(){
 
 animate();
 
-// ------------------------------------
+// --------------------------------------
 // RESIZE
-// ------------------------------------
+// --------------------------------------
 
 window.addEventListener("resize",()=>{
 
