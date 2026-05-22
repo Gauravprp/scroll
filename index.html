@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-  <title>Smooth Gesture Scroll</title>
+  <title>Gesture UI</title>
 
   <!-- MediaPipe -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.min.js"></script>
@@ -33,6 +33,7 @@
       flex-direction:column;
       text-align:center;
       padding:40px;
+      position:relative;
     }
 
     .hero{
@@ -84,7 +85,7 @@
 
       transform:translateX(-50%);
 
-      width:300px;
+      width:320px;
       height:60px;
 
       border-radius:999px;
@@ -121,10 +122,9 @@
       );
 
       transition:
-      width 0.08s linear,
-      opacity 0.08s linear;
+      width 0.08s linear;
 
-      opacity:0.3;
+      opacity:0.4;
 
     }
 
@@ -150,8 +150,8 @@
 
     .cursor{
 
-      width:30px;
-      height:30px;
+      width:32px;
+      height:32px;
 
       border-radius:50%;
 
@@ -166,14 +166,66 @@
 
       pointer-events:none;
 
-      z-index:9999;
+      z-index:99999;
 
       transition:
       left 0.03s linear,
-      top 0.03s linear;
+      top 0.03s linear,
+      transform 0.1s ease;
 
       box-shadow:
-      0 0 20px rgba(255,255,255,0.5);
+      0 0 25px rgba(255,255,255,0.5);
+
+    }
+
+    .cursor.active{
+      transform:
+      translate(-50%,-50%)
+      scale(1.8);
+
+      background:#fff;
+    }
+
+    /* BUTTON */
+
+    .air-button{
+
+      margin-top:40px;
+
+      padding:20px 50px;
+
+      border-radius:999px;
+
+      border:none;
+
+      font-size:20px;
+
+      cursor:pointer;
+
+      background:
+      linear-gradient(
+        90deg,
+        #0066ff,
+        #00bfff
+      );
+
+      color:#fff;
+
+      transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+
+      box-shadow:
+      0 0 30px rgba(0,102,255,0.3);
+
+    }
+
+    .air-button.hover{
+
+      transform:scale(1.08);
+
+      box-shadow:
+      0 0 40px rgba(0,102,255,0.7);
 
     }
 
@@ -218,22 +270,29 @@
 
     <h1>
       Gesture<br>
-      Scroll
+      Control
     </h1>
 
     <p style="margin-top:30px;">
-      Hold finger up or down to scroll smoothly.
+      Use only your index finger and thumb.
     </p>
+
+    <button
+      class="air-button"
+      id="airButton"
+    >
+      Open Google
+    </button>
 
   </section>
 
   <!-- SECTION -->
   <section class="dark">
 
-    <h2>AI Tracking</h2>
+    <h2>Air Click</h2>
 
     <p>
-      Smooth browser-based hand tracking experience.
+      Pinch your index finger and thumb together to click.
     </p>
 
   </section>
@@ -244,18 +303,7 @@
     <h2>Touchless UI</h2>
 
     <p>
-      Scroll the website using air gestures.
-    </p>
-
-  </section>
-
-  <!-- SECTION -->
-  <section class="dark">
-
-    <h2>Future Experience</h2>
-
-    <p>
-      Powered by MediaPipe AI tracking.
+      Scroll and interact without touching screen.
     </p>
 
   </section>
@@ -274,22 +322,20 @@ document.getElementById("statusFill");
 const cursor =
 document.getElementById("cursor");
 
+const airButton =
+document.getElementById("airButton");
+
 // -------------------------------------
-// TARGET:
-// 1 second = half screen scroll
+// SCROLL SETTINGS
 // -------------------------------------
 
 const SCROLL_PER_FRAME =
 (window.innerHeight / 2) / 60;
 
-// -------------------------------------
-// SCROLL STATE
-// -------------------------------------
-
 let scrollDirection = 0;
 
 // -------------------------------------
-// SMOOTH ENGINE
+// SCROLL ENGINE
 // -------------------------------------
 
 function animateScroll(){
@@ -325,10 +371,16 @@ hands.setOptions({
 
   maxNumHands:1,
   modelComplexity:1,
-  minDetectionConfidence:0.7,
-  minTrackingConfidence:0.7
+  minDetectionConfidence:0.75,
+  minTrackingConfidence:0.75
 
 });
+
+// -------------------------------------
+// CLICK STATE
+// -------------------------------------
+
+let clickLock = false;
 
 // -------------------------------------
 // MAIN
@@ -355,9 +407,48 @@ hands.onResults((results)=>{
   const landmarks =
   results.multiHandLandmarks[0];
 
-  // INDEX FINGER
-  const finger =
+  // -------------------------------------
+  // INDEX FINGER TIP
+  // -------------------------------------
+
+  const indexFinger =
   landmarks[8];
+
+  // -------------------------------------
+  // THUMB TIP
+  // -------------------------------------
+
+  const thumbTip =
+  landmarks[4];
+
+  // -------------------------------------
+  // IGNORE OTHER FINGERS
+  // -------------------------------------
+
+  const middleFinger =
+  landmarks[12];
+
+  const ringFinger =
+  landmarks[16];
+
+  const pinkyFinger =
+  landmarks[20];
+
+  const onlyIndexVisible =
+
+    middleFinger.y > indexFinger.y &&
+    ringFinger.y > indexFinger.y &&
+    pinkyFinger.y > indexFinger.y;
+
+  if(!onlyIndexVisible){
+
+    statusText.innerText =
+    "Use only index finger ☝️";
+
+    scrollDirection = 0;
+
+    return;
+  }
 
   // -------------------------------------
   // CURSOR
@@ -365,57 +456,46 @@ hands.onResults((results)=>{
 
   const x =
   window.innerWidth -
-  (finger.x * window.innerWidth);
+  (indexFinger.x * window.innerWidth);
 
   const y =
-  finger.y * window.innerHeight;
+  indexFinger.y * window.innerHeight;
 
   cursor.style.left = x + "px";
   cursor.style.top = y + "px";
 
   // -------------------------------------
-  // SCROLL ZONES
+  // SCROLL
   // -------------------------------------
 
-  // TOP
-  if(finger.y < 0.45){
+  if(indexFinger.y < 0.45){
 
     scrollDirection = -1;
 
     const intensity =
-    ((0.45 - finger.y) / 0.45) * 100;
+    ((0.45 - indexFinger.y) / 0.45) * 100;
 
     statusText.innerText =
     "Scrolling Up ↑";
 
     statusFill.style.width =
     intensity + "%";
-
-    statusFill.style.opacity =
-    0.5 + (intensity / 100);
-
   }
 
-  // BOTTOM
-  else if(finger.y > 0.55){
+  else if(indexFinger.y > 0.55){
 
     scrollDirection = 1;
 
     const intensity =
-    ((finger.y - 0.55) / 0.45) * 100;
+    ((indexFinger.y - 0.55) / 0.45) * 100;
 
     statusText.innerText =
     "Scrolling Down ↓";
 
     statusFill.style.width =
     intensity + "%";
-
-    statusFill.style.opacity =
-    0.5 + (intensity / 100);
-
   }
 
-  // CENTER
   else{
 
     scrollDirection = 0;
@@ -424,7 +504,66 @@ hands.onResults((results)=>{
     "Neutral Zone";
 
     statusFill.style.width = "0%";
+  }
 
+  // -------------------------------------
+  // AIR CLICK
+  // -------------------------------------
+
+  const pinchDistance = Math.hypot(
+    thumbTip.x - indexFinger.x,
+    thumbTip.y - indexFinger.y
+  );
+
+  // button collision
+  const rect =
+  airButton.getBoundingClientRect();
+
+  const hovering =
+
+    x > rect.left &&
+    x < rect.right &&
+    y > rect.top &&
+    y < rect.bottom;
+
+  if(hovering){
+
+    airButton.classList.add("hover");
+
+  }else{
+
+    airButton.classList.remove("hover");
+  }
+
+  // pinch click
+  if(
+    pinchDistance < 0.05 &&
+    hovering &&
+    !clickLock
+  ){
+
+    clickLock = true;
+
+    cursor.classList.add("active");
+
+    statusText.innerText =
+    "Air Click 👆";
+
+    setTimeout(()=>{
+
+      window.location.href =
+      "https://google.com";
+
+    },200);
+
+  }
+
+  // release
+  if(pinchDistance > 0.07){
+
+    clickLock = false;
+
+    cursor.classList.remove("active");
   }
 
 });
