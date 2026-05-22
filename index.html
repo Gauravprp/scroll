@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Gesture Scroll Website</title>
+  <title>Working Gesture Scroll</title>
 
   <!-- MediaPipe -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.min.js"></script>
@@ -18,14 +18,10 @@
       box-sizing:border-box;
     }
 
-    html{
-      scroll-behavior:smooth;
-    }
-
     body{
       background:#000;
       color:#fff;
-      font-family:Arial, Helvetica, sans-serif;
+      font-family:Arial;
       overflow-x:hidden;
     }
 
@@ -37,45 +33,35 @@
       flex-direction:column;
       text-align:center;
       padding:40px;
-      position:relative;
     }
 
     .hero{
-      background:
-      radial-gradient(circle at top,#222 0%,#000 60%);
+      background:linear-gradient(to bottom,#000,#111);
     }
 
     .dark{
-      background:#080808;
+      background:#0a0a0a;
     }
 
     .gradient{
-      background:
-      linear-gradient(135deg,#111,#1a1a1a);
+      background:linear-gradient(135deg,#111,#1b1b1b);
     }
 
     h1{
-      font-size:110px;
-      line-height:0.9;
-      letter-spacing:-4px;
+      font-size:100px;
+      line-height:1;
     }
 
     h2{
-      font-size:72px;
+      font-size:70px;
       margin-bottom:20px;
     }
 
     p{
-      color:#999;
       max-width:700px;
+      color:#999;
       line-height:1.8;
       font-size:20px;
-    }
-
-    .glow{
-      text-shadow:
-      0 0 20px rgba(255,255,255,0.2),
-      0 0 60px rgba(255,255,255,0.08);
     }
 
     .status{
@@ -83,29 +69,24 @@
       top:20px;
       left:50%;
       transform:translateX(-50%);
-      padding:14px 28px;
+      padding:14px 24px;
       border-radius:999px;
       background:rgba(255,255,255,0.08);
       border:1px solid rgba(255,255,255,0.1);
       backdrop-filter:blur(10px);
       z-index:9999;
-      font-size:14px;
-      letter-spacing:1px;
     }
 
-    /* HIDDEN VIDEO */
     video{
       position:fixed;
       width:1px;
       height:1px;
       opacity:0;
-      pointer-events:none;
     }
 
-    /* CURSOR */
     .cursor{
-      width:28px;
-      height:28px;
+      width:30px;
+      height:30px;
       border-radius:50%;
       border:2px solid #fff;
       position:fixed;
@@ -114,36 +95,9 @@
       transform:translate(-50%,-50%);
       pointer-events:none;
       z-index:9999;
-
-      box-shadow:
-      0 0 20px rgba(255,255,255,0.6);
-
       transition:
-      left 0.05s linear,
-      top 0.05s linear,
-      transform 0.15s ease;
-    }
-
-    .cursor.active{
-      transform:
-      translate(-50%,-50%)
-      scale(1.8);
-    }
-
-    .arrow{
-      margin-top:50px;
-      font-size:42px;
-      color:#666;
-      animation:float 1s infinite alternate;
-    }
-
-    @keyframes float{
-      from{
-        transform:translateY(0px);
-      }
-      to{
-        transform:translateY(12px);
-      }
+      left 0.03s linear,
+      top 0.03s linear;
     }
 
   </style>
@@ -151,71 +105,53 @@
 
 <body>
 
-  <div class="status" id="status">
-    Show index finger ☝️
-  </div>
+<div class="status" id="status">
+  Show index finger ☝️
+</div>
 
-  <div class="cursor" id="cursor"></div>
+<div class="cursor" id="cursor"></div>
 
-  <video
-    id="video"
-    autoplay
-    playsinline
-    muted
-  ></video>
+<video
+  id="video"
+  autoplay
+  playsinline
+  muted
+></video>
 
-  <!-- HERO -->
-  <section class="hero">
+<section class="hero">
+  <h1>
+    Gesture<br>
+    Scroll
+  </h1>
 
-    <h1 class="glow">
-      Gesture<br>
-      Scroll
-    </h1>
+  <p style="margin-top:30px;">
+    Move your index finger up and down.
+  </p>
+</section>
 
-    <p style="margin-top:30px;">
-      Control the website using your index finger in the air.
-    </p>
+<section class="dark">
+  <h2>AI Tracking</h2>
 
-    <div class="arrow">
-      ☝️
-    </div>
+  <p>
+    This website scrolls using your finger movement.
+  </p>
+</section>
 
-  </section>
+<section class="gradient">
+  <h2>Future UI</h2>
 
-  <!-- SECTION -->
-  <section class="dark">
+  <p>
+    Smooth gesture based interactions directly in browser.
+  </p>
+</section>
 
-    <h2>Future UI</h2>
+<section class="dark">
+  <h2>Touchless Control</h2>
 
-    <p>
-      This interface uses AI-powered hand tracking directly
-      inside your browser.
-    </p>
-
-  </section>
-
-  <!-- SECTION -->
-  <section class="gradient">
-
-    <h2>Touchless Experience</h2>
-
-    <p>
-      Scroll naturally using your hand movement like a
-      futuristic operating system.
-    </p>
-
-  </section>
-
-  <!-- SECTION -->
-  <section class="dark">
-
-    <h2>Speed Based Motion</h2>
-
-    <p>
-      The faster you move your finger, the faster the page scrolls.
-    </p>
-
-  </section>
+  <p>
+    Powered by MediaPipe hand tracking AI.
+  </p>
+</section>
 
 <script>
 
@@ -228,34 +164,9 @@ document.getElementById("status");
 const cursor =
 document.getElementById("cursor");
 
-// ----------------------------------
-// REAL SCROLL ENGINE
-// ----------------------------------
-
-let scrollSpeed = 0;
-
-function smoothScroll(){
-
-  if(Math.abs(scrollSpeed) > 0.1){
-
-    // REAL PIXEL SCROLL
-    window.scrollTo({
-      top:
-      window.scrollY + scrollSpeed
-    });
-
-    // friction
-    scrollSpeed *= 0.92;
-  }
-
-  requestAnimationFrame(smoothScroll);
-}
-
-smoothScroll();
-
-// ----------------------------------
-// HAND TRACKING
-// ----------------------------------
+// -------------------------------------
+// HANDS
+// -------------------------------------
 
 const hands = new Hands({
 
@@ -269,10 +180,14 @@ hands.setOptions({
 
   maxNumHands:1,
   modelComplexity:1,
-  minDetectionConfidence:0.75,
-  minTrackingConfidence:0.75
+  minDetectionConfidence:0.7,
+  minTrackingConfidence:0.7
 
 });
+
+// -------------------------------------
+// MAIN
+// -------------------------------------
 
 hands.onResults((results)=>{
 
@@ -284,8 +199,6 @@ hands.onResults((results)=>{
     statusText.innerText =
     "No hand detected";
 
-    scrollSpeed = 0;
-
     return;
   }
 
@@ -296,7 +209,10 @@ hands.onResults((results)=>{
   const finger =
   landmarks[8];
 
+  // -------------------------------------
   // CURSOR
+  // -------------------------------------
+
   const x =
   window.innerWidth -
   (finger.x * window.innerWidth);
@@ -307,58 +223,42 @@ hands.onResults((results)=>{
   cursor.style.left = x + "px";
   cursor.style.top = y + "px";
 
-  // ----------------------------------
-  // JOYSTICK SYSTEM
-  // ----------------------------------
+  // -------------------------------------
+  // SIMPLE WORKING SCROLL
+  // -------------------------------------
 
-  const centerY = 0.5;
-
-  const offset =
-  finger.y - centerY;
-
-  const deadZone = 0.03;
-
-  // neutral
-  if(Math.abs(offset) < deadZone){
+  // TOP AREA
+  if(finger.y < 0.4){
 
     statusText.innerText =
-    "Neutral Zone";
+    "Scrolling Up ↑";
 
-    scrollSpeed *= 0.7;
-
-    return;
+    // REAL SCROLL
+    window.scrollBy(0,-15);
   }
 
-  // SPEED
-  let speed =
-  offset * 80;
-
-  // clamp
-  speed =
-  Math.max(
-    Math.min(speed,40),
-    -40
-  );
-
-  scrollSpeed = speed;
-
-  // TEXT
-  if(offset > 0){
+  // BOTTOM AREA
+  else if(finger.y > 0.6){
 
     statusText.innerText =
     "Scrolling Down ↓";
 
-  }else{
+    // REAL SCROLL
+    window.scrollBy(0,15);
+  }
+
+  // CENTER AREA
+  else{
 
     statusText.innerText =
-    "Scrolling Up ↑";
+    "Neutral Zone";
   }
 
 });
 
-// ----------------------------------
+// -------------------------------------
 // CAMERA
-// ----------------------------------
+// -------------------------------------
 
 const camera = new Camera(videoElement,{
 
