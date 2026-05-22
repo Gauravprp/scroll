@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-  <title>Working Gesture Scroll</title>
+  <title>Smooth Gesture Scroll</title>
 
   <!-- MediaPipe -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.min.js"></script>
@@ -21,7 +21,7 @@
     body{
       background:#000;
       color:#fff;
-      font-family:Arial;
+      font-family:Arial, Helvetica, sans-serif;
       overflow-x:hidden;
     }
 
@@ -36,15 +36,17 @@
     }
 
     .hero{
-      background:linear-gradient(to bottom,#000,#111);
+      background:
+      radial-gradient(circle at top,#222,#000 60%);
     }
 
     .dark{
-      background:#0a0a0a;
+      background:#080808;
     }
 
     .gradient{
-      background:linear-gradient(135deg,#111,#1b1b1b);
+      background:
+      linear-gradient(135deg,#111,#1b1b1b);
     }
 
     h1{
@@ -64,19 +66,6 @@
       font-size:20px;
     }
 
-    .status{
-      position:fixed;
-      top:20px;
-      left:50%;
-      transform:translateX(-50%);
-      padding:14px 24px;
-      border-radius:999px;
-      background:rgba(255,255,255,0.08);
-      border:1px solid rgba(255,255,255,0.1);
-      backdrop-filter:blur(10px);
-      z-index:9999;
-    }
-
     video{
       position:fixed;
       width:1px;
@@ -84,20 +73,108 @@
       opacity:0;
     }
 
+    /* STATUS */
+
+    .status{
+
+      position:fixed;
+
+      top:20px;
+      left:50%;
+
+      transform:translateX(-50%);
+
+      width:300px;
+      height:60px;
+
+      border-radius:999px;
+
+      overflow:hidden;
+
+      background:
+      rgba(255,255,255,0.06);
+
+      border:
+      1px solid rgba(255,255,255,0.1);
+
+      backdrop-filter:blur(10px);
+
+      z-index:9999;
+
+    }
+
+    .status-fill{
+
+      position:absolute;
+
+      left:0;
+      top:0;
+
+      width:0%;
+      height:100%;
+
+      background:
+      linear-gradient(
+        90deg,
+        #0066ff,
+        #00bfff
+      );
+
+      transition:
+      width 0.08s linear,
+      opacity 0.08s linear;
+
+      opacity:0.3;
+
+    }
+
+    .status-text{
+
+      position:relative;
+
+      z-index:2;
+
+      width:100%;
+      height:100%;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      font-size:15px;
+      letter-spacing:1px;
+
+    }
+
+    /* CURSOR */
+
     .cursor{
+
       width:30px;
       height:30px;
+
       border-radius:50%;
+
       border:2px solid #fff;
+
       position:fixed;
+
       left:50%;
       top:50%;
+
       transform:translate(-50%,-50%);
+
       pointer-events:none;
+
       z-index:9999;
+
       transition:
       left 0.03s linear,
       top 0.03s linear;
+
+      box-shadow:
+      0 0 20px rgba(255,255,255,0.5);
+
     }
 
   </style>
@@ -105,53 +182,83 @@
 
 <body>
 
-<div class="status" id="status">
-  Show index finger ☝️
-</div>
+  <!-- STATUS -->
+  <div class="status">
 
-<div class="cursor" id="cursor"></div>
+    <div
+      class="status-fill"
+      id="statusFill"
+    ></div>
 
-<video
-  id="video"
-  autoplay
-  playsinline
-  muted
-></video>
+    <div
+      class="status-text"
+      id="statusText"
+    >
+      Show index finger ☝️
+    </div>
 
-<section class="hero">
-  <h1>
-    Gesture<br>
-    Scroll
-  </h1>
+  </div>
 
-  <p style="margin-top:30px;">
-    Move your index finger up and down.
-  </p>
-</section>
+  <!-- CURSOR -->
+  <div
+    class="cursor"
+    id="cursor"
+  ></div>
 
-<section class="dark">
-  <h2>AI Tracking</h2>
+  <!-- VIDEO -->
+  <video
+    id="video"
+    autoplay
+    playsinline
+    muted
+  ></video>
 
-  <p>
-    This website scrolls using your finger movement.
-  </p>
-</section>
+  <!-- HERO -->
+  <section class="hero">
 
-<section class="gradient">
-  <h2>Future UI</h2>
+    <h1>
+      Gesture<br>
+      Scroll
+    </h1>
 
-  <p>
-    Smooth gesture based interactions directly in browser.
-  </p>
-</section>
+    <p style="margin-top:30px;">
+      Hold finger up or down to scroll smoothly.
+    </p>
 
-<section class="dark">
-  <h2>Touchless Control</h2>
+  </section>
 
-  <p>
-    Powered by MediaPipe hand tracking AI.
-  </p>
-</section>
+  <!-- SECTION -->
+  <section class="dark">
+
+    <h2>AI Tracking</h2>
+
+    <p>
+      Smooth browser-based hand tracking experience.
+    </p>
+
+  </section>
+
+  <!-- SECTION -->
+  <section class="gradient">
+
+    <h2>Touchless UI</h2>
+
+    <p>
+      Scroll the website using air gestures.
+    </p>
+
+  </section>
+
+  <!-- SECTION -->
+  <section class="dark">
+
+    <h2>Future Experience</h2>
+
+    <p>
+      Powered by MediaPipe AI tracking.
+    </p>
+
+  </section>
 
 <script>
 
@@ -159,10 +266,48 @@ const videoElement =
 document.getElementById("video");
 
 const statusText =
-document.getElementById("status");
+document.getElementById("statusText");
+
+const statusFill =
+document.getElementById("statusFill");
 
 const cursor =
 document.getElementById("cursor");
+
+// -------------------------------------
+// TARGET:
+// 1 second = half screen scroll
+// -------------------------------------
+
+const SCROLL_PER_FRAME =
+(window.innerHeight / 2) / 60;
+
+// -------------------------------------
+// SCROLL STATE
+// -------------------------------------
+
+let scrollDirection = 0;
+
+// -------------------------------------
+// SMOOTH ENGINE
+// -------------------------------------
+
+function animateScroll(){
+
+  if(scrollDirection !== 0){
+
+    window.scrollBy({
+      top:
+      SCROLL_PER_FRAME * scrollDirection,
+      behavior:"auto"
+    });
+
+  }
+
+  requestAnimationFrame(animateScroll);
+}
+
+animateScroll();
 
 // -------------------------------------
 // HANDS
@@ -191,6 +336,7 @@ hands.setOptions({
 
 hands.onResults((results)=>{
 
+  // NO HAND
   if(
     !results.multiHandLandmarks ||
     results.multiHandLandmarks.length === 0
@@ -198,6 +344,10 @@ hands.onResults((results)=>{
 
     statusText.innerText =
     "No hand detected";
+
+    statusFill.style.width = "0%";
+
+    scrollDirection = 0;
 
     return;
   }
@@ -224,34 +374,57 @@ hands.onResults((results)=>{
   cursor.style.top = y + "px";
 
   // -------------------------------------
-  // SIMPLE WORKING SCROLL
+  // SCROLL ZONES
   // -------------------------------------
 
-  // TOP AREA
-  if(finger.y < 0.4){
+  // TOP
+  if(finger.y < 0.45){
+
+    scrollDirection = -1;
+
+    const intensity =
+    ((0.45 - finger.y) / 0.45) * 100;
 
     statusText.innerText =
     "Scrolling Up ↑";
 
-    // REAL SCROLL
-    window.scrollBy(0,-15);
+    statusFill.style.width =
+    intensity + "%";
+
+    statusFill.style.opacity =
+    0.5 + (intensity / 100);
+
   }
 
-  // BOTTOM AREA
-  else if(finger.y > 0.6){
+  // BOTTOM
+  else if(finger.y > 0.55){
+
+    scrollDirection = 1;
+
+    const intensity =
+    ((finger.y - 0.55) / 0.45) * 100;
 
     statusText.innerText =
     "Scrolling Down ↓";
 
-    // REAL SCROLL
-    window.scrollBy(0,15);
+    statusFill.style.width =
+    intensity + "%";
+
+    statusFill.style.opacity =
+    0.5 + (intensity / 100);
+
   }
 
-  // CENTER AREA
+  // CENTER
   else{
+
+    scrollDirection = 0;
 
     statusText.innerText =
     "Neutral Zone";
+
+    statusFill.style.width = "0%";
+
   }
 
 });
