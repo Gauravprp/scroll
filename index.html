@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 
-  <title>Gesture Controlled Website</title>
+  <title>Gesture Car Game</title>
 
   <!-- MediaPipe -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.min.js"></script>
@@ -19,52 +19,14 @@
     }
 
     body{
+      overflow:hidden;
       background:#000;
-      color:#fff;
-      font-family:Arial, Helvetica, sans-serif;
-      overflow-x:hidden;
+      font-family:Arial;
     }
 
-    section{
-      height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      flex-direction:column;
-      text-align:center;
-      padding:40px;
-      position:relative;
-    }
-
-    .hero{
-      background:
-      radial-gradient(circle at top,#222,#000 60%);
-    }
-
-    .dark{
-      background:#080808;
-    }
-
-    .gradient{
-      background:
-      linear-gradient(135deg,#111,#1b1b1b);
-    }
-
-    h1{
-      font-size:100px;
-      line-height:1;
-    }
-
-    h2{
-      font-size:70px;
-      margin-bottom:20px;
-    }
-
-    p{
-      max-width:700px;
-      color:#999;
-      line-height:1.8;
-      font-size:20px;
+    canvas{
+      display:block;
+      background:#111;
     }
 
     video{
@@ -74,9 +36,9 @@
       opacity:0;
     }
 
-    /* STATUS */
+    /* UI */
 
-    .status{
+    .hud{
 
       position:fixed;
 
@@ -85,148 +47,63 @@
 
       transform:translateX(-50%);
 
-      width:320px;
-      height:60px;
+      z-index:999;
+
+      width:340px;
+
+      padding:18px 24px;
 
       border-radius:999px;
 
-      overflow:hidden;
-
       background:
-      rgba(255,255,255,0.06);
+      rgba(255,255,255,0.08);
 
       border:
       1px solid rgba(255,255,255,0.1);
 
       backdrop-filter:blur(10px);
 
-      z-index:9999;
+      color:#fff;
 
-    }
-
-    .status-fill{
-
-      position:absolute;
-
-      left:0;
-      top:0;
-
-      width:0%;
-      height:100%;
-
-      background:
-      linear-gradient(
-        90deg,
-        #0066ff,
-        #00bfff
-      );
-
-      transition:
-      width 0.08s linear;
-
-      opacity:0.4;
-
-    }
-
-    .status-text{
-
-      position:relative;
-
-      z-index:2;
-
-      width:100%;
-      height:100%;
-
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      text-align:center;
 
       font-size:15px;
+
       letter-spacing:1px;
 
     }
 
-    /* CURSOR */
-
-    .cursor{
-
-      width:32px;
-      height:32px;
-
-      border-radius:50%;
-
-      border:2px solid #fff;
+    .score{
 
       position:fixed;
 
-      left:50%;
-      top:50%;
+      top:20px;
+      right:20px;
 
-      transform:translate(-50%,-50%);
-
-      pointer-events:none;
-
-      z-index:99999;
-
-      transition:
-      left 0.03s linear,
-      top 0.03s linear,
-      transform 0.1s ease;
-
-      box-shadow:
-      0 0 25px rgba(255,255,255,0.5);
-
-    }
-
-    .cursor.active{
-      transform:
-      translate(-50%,-50%)
-      scale(1.8);
-
-      background:#fff;
-    }
-
-    /* BUTTON */
-
-    .air-button{
-
-      margin-top:40px;
-
-      padding:20px 50px;
-
-      border-radius:999px;
-
-      border:none;
-
-      font-size:20px;
-
-      cursor:pointer;
-
-      background:
-      linear-gradient(
-        90deg,
-        #0066ff,
-        #00bfff
-      );
+      z-index:999;
 
       color:#fff;
 
-      transition:
-      transform 0.2s ease,
-      box-shadow 0.2s ease;
+      font-size:28px;
 
-      box-shadow:
-      0 0 30px rgba(0,102,255,0.3);
+      font-weight:bold;
 
     }
 
-    .air-button.hover{
+    .controls{
 
-      transform:scale(1.08);
+      position:fixed;
 
-      box-shadow:
-      0 0 40px rgba(0,102,255,0.7);
+      bottom:20px;
+      left:50%;
 
+      transform:translateX(-50%);
+
+      color:#999;
+
+      font-size:14px;
+
+      z-index:999;
     }
 
   </style>
@@ -234,30 +111,18 @@
 
 <body>
 
-  <!-- STATUS -->
-  <div class="status">
-
-    <div
-      class="status-fill"
-      id="statusFill"
-    ></div>
-
-    <div
-      class="status-text"
-      id="statusText"
-    >
-      Show your hand ✋
-    </div>
-
+  <div class="hud" id="hud">
+    Show your hand ✋
   </div>
 
-  <!-- CURSOR -->
-  <div
-    class="cursor"
-    id="cursor"
-  ></div>
+  <div class="score" id="score">
+    0
+  </div>
 
-  <!-- VIDEO -->
+  <div class="controls">
+    Move hand LEFT / RIGHT to steer
+  </div>
+
   <video
     id="video"
     autoplay
@@ -265,110 +130,108 @@
     muted
   ></video>
 
-  <!-- HERO -->
-  <section class="hero">
-
-    <h1>
-      Gesture<br>
-      Control
-    </h1>
-
-    <p style="margin-top:30px;">
-      Use your hand to scroll and air click.
-    </p>
-
-    <button
-      class="air-button"
-      id="airButton"
-    >
-      Open Google
-    </button>
-
-  </section>
-
-  <!-- SECTION -->
-  <section class="dark">
-
-    <h2>Air Click</h2>
-
-    <p>
-      Pinch your thumb and index finger together to click.
-    </p>
-
-  </section>
-
-  <!-- SECTION -->
-  <section class="gradient">
-
-    <h2>Touchless UI</h2>
-
-    <p>
-      Scroll and interact without touching the screen.
-    </p>
-
-  </section>
-
-  <!-- SECTION -->
-  <section class="dark">
-
-    <h2>Future Experience</h2>
-
-    <p>
-      Powered by MediaPipe AI tracking.
-    </p>
-
-  </section>
+  <canvas id="game"></canvas>
 
 <script>
 
-const videoElement =
-document.getElementById("video");
+const canvas =
+document.getElementById("game");
 
-const statusText =
-document.getElementById("statusText");
+const ctx =
+canvas.getContext("2d");
 
-const statusFill =
-document.getElementById("statusFill");
+const hud =
+document.getElementById("hud");
 
-const cursor =
-document.getElementById("cursor");
+const scoreText =
+document.getElementById("score");
 
-const airButton =
-document.getElementById("airButton");
+canvas.width =
+window.innerWidth;
 
-// -------------------------------------
-// SCROLL SETTINGS
-// -------------------------------------
+canvas.height =
+window.innerHeight;
 
-const SCROLL_PER_FRAME =
-(window.innerHeight / 2) / 60;
+// ------------------------------------
+// GAME STATE
+// ------------------------------------
 
-let scrollDirection = 0;
+let score = 0;
+let gameOver = false;
 
-// -------------------------------------
-// SMOOTH SCROLL ENGINE
-// -------------------------------------
+let handX = 0.5;
 
-function animateScroll(){
+// ------------------------------------
+// PLAYER
+// ------------------------------------
 
-  if(scrollDirection !== 0){
+const player = {
 
-    window.scrollBy({
-      top:
-      SCROLL_PER_FRAME * scrollDirection,
-      behavior:"auto"
-    });
+  x:
+  canvas.width / 2 - 35,
 
-  }
+  y:
+  canvas.height - 180,
 
-  requestAnimationFrame(animateScroll);
+  width:70,
+  height:120,
+
+  speed:0
+
+};
+
+// ------------------------------------
+// OBSTACLES
+// ------------------------------------
+
+const obstacles = [];
+
+// create traffic
+function createObstacle(){
+
+  const width = 70;
+  const height = 120;
+
+  const lane =
+  Math.floor(Math.random() * 5);
+
+  const laneWidth =
+  canvas.width / 5;
+
+  obstacles.push({
+
+    x:
+    lane * laneWidth +
+    laneWidth / 2 -
+    width / 2,
+
+    y:-150,
+
+    width,
+    height,
+
+    speed:
+    8 + Math.random() * 5
+
+  });
+
 }
 
-animateScroll();
+// spawn loop
+setInterval(()=>{
 
-// -------------------------------------
-// HANDS
-// -------------------------------------
+  if(!gameOver){
+    createObstacle();
+  }
+
+},1000);
+
+// ------------------------------------
+// MEDIAPIPE
+// ------------------------------------
+
+const videoElement =
+document.getElementById("video");
 
 const hands = new Hands({
 
@@ -382,35 +245,24 @@ hands.setOptions({
 
   maxNumHands:1,
   modelComplexity:1,
-  minDetectionConfidence:0.75,
-  minTrackingConfidence:0.75
+  minDetectionConfidence:0.7,
+  minTrackingConfidence:0.7
 
 });
 
-// -------------------------------------
-// CLICK STATE
-// -------------------------------------
-
-let clickLock = false;
-
-// -------------------------------------
-// MAIN
-// -------------------------------------
+// ------------------------------------
+// HAND TRACKING
+// ------------------------------------
 
 hands.onResults((results)=>{
 
-  // NO HAND
   if(
     !results.multiHandLandmarks ||
     results.multiHandLandmarks.length === 0
   ){
 
-    statusText.innerText =
+    hud.innerText =
     "No hand detected";
-
-    statusFill.style.width = "0%";
-
-    scrollDirection = 0;
 
     return;
   }
@@ -418,140 +270,38 @@ hands.onResults((results)=>{
   const landmarks =
   results.multiHandLandmarks[0];
 
-  // INDEX FINGER
-  const indexFinger =
+  // index finger
+  const finger =
   landmarks[8];
 
-  // THUMB
-  const thumbTip =
-  landmarks[4];
+  handX = finger.x;
 
-  // -------------------------------------
-  // CURSOR
-  // -------------------------------------
+  // LEFT
+  if(handX < 0.4){
 
-  const x =
-  window.innerWidth -
-  (indexFinger.x * window.innerWidth);
-
-  const y =
-  indexFinger.y * window.innerHeight;
-
-  cursor.style.left = x + "px";
-  cursor.style.top = y + "px";
-
-  // -------------------------------------
-  // SCROLL
-  // -------------------------------------
-
-  // TOP ZONE
-  if(indexFinger.y < 0.45){
-
-    scrollDirection = -1;
-
-    const intensity =
-    ((0.45 - indexFinger.y) / 0.45) * 100;
-
-    statusText.innerText =
-    "Scrolling Up ↑";
-
-    statusFill.style.width =
-    intensity + "%";
+    hud.innerText =
+    "Turning Left ←";
   }
 
-  // BOTTOM ZONE
-  else if(indexFinger.y > 0.55){
+  // RIGHT
+  else if(handX > 0.6){
 
-    scrollDirection = 1;
-
-    const intensity =
-    ((indexFinger.y - 0.55) / 0.45) * 100;
-
-    statusText.innerText =
-    "Scrolling Down ↓";
-
-    statusFill.style.width =
-    intensity + "%";
+    hud.innerText =
+    "Turning Right →";
   }
 
   // CENTER
   else{
 
-    scrollDirection = 0;
-
-    statusText.innerText =
-    "Neutral Zone";
-
-    statusFill.style.width = "0%";
-  }
-
-  // -------------------------------------
-  // BUTTON HOVER
-  // -------------------------------------
-
-  const rect =
-  airButton.getBoundingClientRect();
-
-  const hovering =
-
-    x > rect.left &&
-    x < rect.right &&
-    y > rect.top &&
-    y < rect.bottom;
-
-  if(hovering){
-
-    airButton.classList.add("hover");
-
-  }else{
-
-    airButton.classList.remove("hover");
-  }
-
-  // -------------------------------------
-  // AIR CLICK
-  // -------------------------------------
-
-  const pinchDistance = Math.hypot(
-    thumbTip.x - indexFinger.x,
-    thumbTip.y - indexFinger.y
-  );
-
-  if(
-    pinchDistance < 0.05 &&
-    hovering &&
-    !clickLock
-  ){
-
-    clickLock = true;
-
-    cursor.classList.add("active");
-
-    statusText.innerText =
-    "Air Click 👆";
-
-    setTimeout(()=>{
-
-      window.location.href =
-      "https://google.com";
-
-    },200);
-
-  }
-
-  // RELEASE
-  if(pinchDistance > 0.07){
-
-    clickLock = false;
-
-    cursor.classList.remove("active");
+    hud.innerText =
+    "Straight ↑";
   }
 
 });
 
-// -------------------------------------
+// ------------------------------------
 // CAMERA
-// -------------------------------------
+// ------------------------------------
 
 const camera = new Camera(videoElement,{
 
@@ -569,6 +319,221 @@ const camera = new Camera(videoElement,{
 });
 
 camera.start();
+
+// ------------------------------------
+// DRAW ROAD
+// ------------------------------------
+
+let roadOffset = 0;
+
+function drawRoad(){
+
+  // road
+  ctx.fillStyle = "#222";
+
+  ctx.fillRect(
+    canvas.width * 0.2,
+    0,
+    canvas.width * 0.6,
+    canvas.height
+  );
+
+  // lane lines
+  ctx.strokeStyle = "#fff";
+  ctx.lineWidth = 6;
+
+  roadOffset += 20;
+
+  if(roadOffset > 80){
+    roadOffset = 0;
+  }
+
+  for(let i=1;i<5;i++){
+
+    const x =
+    canvas.width * 0.2 +
+    (canvas.width * 0.6 / 5) * i;
+
+    for(let y=-80;y<canvas.height;y+=80){
+
+      ctx.beginPath();
+
+      ctx.moveTo(
+        x,
+        y + roadOffset
+      );
+
+      ctx.lineTo(
+        x,
+        y + 40 + roadOffset
+      );
+
+      ctx.stroke();
+
+    }
+
+  }
+
+}
+
+// ------------------------------------
+// DRAW PLAYER
+// ------------------------------------
+
+function drawPlayer(){
+
+  // smooth steering
+  const targetX =
+  handX * canvas.width;
+
+  player.x +=
+  (targetX - player.x - player.width/2) * 0.08;
+
+  // car body
+  ctx.fillStyle = "#00bfff";
+
+  ctx.fillRect(
+    player.x,
+    player.y,
+    player.width,
+    player.height
+  );
+
+  // windshield
+  ctx.fillStyle = "#bdefff";
+
+  ctx.fillRect(
+    player.x + 12,
+    player.y + 15,
+    46,
+    30
+  );
+
+}
+
+// ------------------------------------
+// DRAW OBSTACLES
+// ------------------------------------
+
+function drawObstacles(){
+
+  for(let i=0;i<obstacles.length;i++){
+
+    const obs =
+    obstacles[i];
+
+    obs.y += obs.speed;
+
+    // obstacle car
+    ctx.fillStyle = "#ff3333";
+
+    ctx.fillRect(
+      obs.x,
+      obs.y,
+      obs.width,
+      obs.height
+    );
+
+    // collision
+    if(
+
+      player.x <
+      obs.x + obs.width &&
+
+      player.x + player.width >
+      obs.x &&
+
+      player.y <
+      obs.y + obs.height &&
+
+      player.y + player.height >
+      obs.y
+
+    ){
+
+      gameOver = true;
+
+      hud.innerText =
+      "Game Over 💀";
+
+    }
+
+    // remove
+    if(obs.y > canvas.height){
+
+      obstacles.splice(i,1);
+
+      score++;
+
+      scoreText.innerText =
+      score;
+
+      i--;
+    }
+
+  }
+
+}
+
+// ------------------------------------
+// GAME LOOP
+// ------------------------------------
+
+function animate(){
+
+  ctx.clearRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+  drawRoad();
+
+  if(!gameOver){
+
+    drawPlayer();
+
+    drawObstacles();
+
+  }else{
+
+    ctx.fillStyle = "#fff";
+
+    ctx.font = "70px Arial";
+
+    ctx.textAlign = "center";
+
+    ctx.fillText(
+
+      "GAME OVER",
+
+      canvas.width / 2,
+
+      canvas.height / 2
+
+    );
+
+  }
+
+  requestAnimationFrame(animate);
+}
+
+animate();
+
+// ------------------------------------
+// RESIZE
+// ------------------------------------
+
+window.addEventListener("resize",()=>{
+
+  canvas.width =
+  window.innerWidth;
+
+  canvas.height =
+  window.innerHeight;
+
+});
 
 </script>
 
